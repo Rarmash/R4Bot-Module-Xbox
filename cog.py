@@ -18,6 +18,10 @@ class Xbox(commands.Cog):
         if not xbox_api:
             raise RuntimeError('Xbox API key is not configured. Use config/secrets/xbox.json')
         self.xpa = XPA(xbox_api)
+        self.services.profile_extensions.register_provider('xbox', self.build_profile_fields)
+
+    def cog_unload(self):
+        self.services.profile_extensions.unregister_provider('xbox')
 
     def get_xbox_gamertag(self, ctx, gamertag):
         if gamertag:
@@ -44,6 +48,23 @@ class Xbox(commands.Cog):
         total_score = games_list[0]['achievement']['totalGamerscore']
         return title_count, recent_game, current_score, total_score
 
+    def build_profile_fields(self, ctx, member, user_data, server_data):
+        xuid = user_data.get('xbox')
+        if not xuid:
+            return []
+
+        try:
+            gamertag = self.xpa.get_account_info_xuid(xuid).Gamertag
+        except XboxErrorHandler.XboxApiError:
+            gamertag = str(xuid)
+
+        return [
+            {
+                'name': 'Профиль Xbox',
+                'value': f"[{gamertag}](https://www.xbox.com/play/user/{str(gamertag).replace(' ', '%20')})",
+            }
+        ]
+
     @xbox.command(description='Посмотреть статистику по пользователю')
     @discord.option('gamertag', description='Gamertag пользователя', required=False)
     async def stats(self, ctx: discord.ApplicationContext, gamertag: str = None):
@@ -51,7 +72,7 @@ class Xbox(commands.Cog):
         gamertag = self.get_xbox_gamertag(ctx, gamertag)
         if not gamertag:
             await ctx.respond(
-                'Вы не привязали профиль Xbox к учётной записи Discord. Сделайте это, используя команду `/xbox connect <Gamertag>`!',
+                'Ты не привязал профиль Xbox к учётной записи Discord. Сделай это командой `/xbox connect <Gamertag>`.',
                 ephemeral=True,
             )
             return
@@ -115,8 +136,8 @@ class Xbox(commands.Cog):
             self.services.firebase.update_record(str(ctx.guild.id), 'Users', author_id, {'xbox': str(user_info.xuid)})
             embed = discord.Embed(
                 description=(
-                    f'Аккаунт **{gamertag}** был успешно привязан к Вашей учётной записи.\n'
-                    'Если Вы измените Gamertag, здесь его менять не понадобится.'
+                    f'Аккаунт **{gamertag}** был успешно привязан к твоей учётной записи.\n'
+                    'Если ты изменишь Gamertag, здесь его менять не понадобится.'
                 ),
                 color=int(user_info.preferredColor['primaryColor'], 16),
             )
@@ -124,11 +145,10 @@ class Xbox(commands.Cog):
             await ctx.respond(embed=embed)
         except XboxErrorHandler.XboxApiError as error:
             await ctx.respond(
-                f'Не удалось привязать профиль Xbox: {error}.\nПроверьте, что Gamertag указан верно.',
+                f'Не удалось привязать профиль Xbox: {error}.\nПроверь, что Gamertag указан верно.',
                 ephemeral=True,
             )
 
 
 def setup(bot):
     bot.add_cog(Xbox(bot))
-
