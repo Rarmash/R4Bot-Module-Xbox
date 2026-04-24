@@ -1,0 +1,14 @@
+﻿{
+  "id": "xbox",
+  "name": "Xbox",
+  "version": "1.0.0",
+  "entrypoint": "cog",
+  "description": "Xbox profile linking and stats module for R4Bot.",
+  "author": "Rarmash",
+  "min_core_version": "2.0",
+  "required_settings": [],
+  "required_services": [
+    "firebase",
+    "secrets"
+  ]
+}

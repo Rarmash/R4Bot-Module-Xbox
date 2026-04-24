@@ -1,0 +1,2 @@
+﻿py-cord @ git+https://github.com/Pycord-Development/pycord.git
+xbox-python-api==0.2.2
