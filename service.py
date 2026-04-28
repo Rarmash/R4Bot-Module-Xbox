@@ -1,5 +1,7 @@
+from r4bot_sdk import register_hook_provider, unregister_hook_provider
 from xpa import ErrorHandler as XboxErrorHandler
 
+MODULE_ID = "xbox"
 PROFILE_FIELDS_HOOK = "profile.fields"
 
 
@@ -8,10 +10,10 @@ class XboxService:
         self.module = module
 
     def register_hooks(self):
-        self.module.register_hook_provider(PROFILE_FIELDS_HOOK, self.build_profile_fields)
+        register_hook_provider(self.module.bot, PROFILE_FIELDS_HOOK, MODULE_ID, self.build_profile_fields)
 
     def unregister_hooks(self):
-        self.module.unregister_hook_provider(PROFILE_FIELDS_HOOK)
+        unregister_hook_provider(self.module.bot, PROFILE_FIELDS_HOOK, MODULE_ID)
 
     def build_profile_fields(self, ctx, member, user_data, server_data):
         xuid = user_data.get("xbox")
