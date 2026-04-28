@@ -1,8 +1,10 @@
-﻿import discord
+import discord
 from discord.commands import SlashCommandGroup
 from discord.ext import commands
 from xpa import ErrorHandler as XboxErrorHandler
 from xpa import XPA
+
+from .service import XboxService
 
 
 class Xbox(commands.Cog):
@@ -17,11 +19,13 @@ class Xbox(commands.Cog):
         xbox_api = self.services.secrets.get('xbox', 'api_key')
         if not xbox_api:
             raise RuntimeError('Xbox API key is not configured. Use config/secrets/xbox.json')
+
         self.xpa = XPA(xbox_api)
-        self.services.profile_extensions.register_provider('xbox', self.build_profile_fields)
+        self.service = XboxService(self)
+        self.service.register_hooks()
 
     def cog_unload(self):
-        self.services.profile_extensions.unregister_provider('xbox')
+        self.service.unregister_hooks()
 
     def get_xbox_gamertag(self, ctx, gamertag):
         if gamertag:
@@ -47,23 +51,6 @@ class Xbox(commands.Cog):
         current_score = games_list[0]['achievement']['currentGamerscore']
         total_score = games_list[0]['achievement']['totalGamerscore']
         return title_count, recent_game, current_score, total_score
-
-    def build_profile_fields(self, ctx, member, user_data, server_data):
-        xuid = user_data.get('xbox')
-        if not xuid:
-            return []
-
-        try:
-            gamertag = self.xpa.get_account_info_xuid(xuid).Gamertag
-        except XboxErrorHandler.XboxApiError:
-            gamertag = str(xuid)
-
-        return [
-            {
-                'name': 'Профиль Xbox',
-                'value': f"[{gamertag}](https://www.xbox.com/play/user/{str(gamertag).replace(' ', '%20')})",
-            }
-        ]
 
     @xbox.command(description='Посмотреть статистику по пользователю')
     @discord.option('gamertag', description='Gamertag пользователя', required=False)

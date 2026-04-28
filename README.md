@@ -7,7 +7,12 @@
 - добавляет `/xbox connect`
 - привязывает Xbox-профиль к Discord-учётной записи
 - показывает основную статистику Xbox-профиля
+- если установлен модуль `profile`, добавляет в него поле Xbox-профиля
 - использует runtime services из `bot.r4_services`
+
+## Интеграции
+- модуль может зарегистрировать profile-provider для `/profile`
+- если `profile` не установлен, это не считается ошибкой и Xbox-модуль продолжает работать сам по себе
 
 ## Секреты
 API-ключ Xbox хранится в:
@@ -32,7 +37,8 @@ config/secrets/xbox.json
 
 ## Структура
 - `module.json` — метаданные модуля
-- `cog.py` — Discord cog
+- `cog.py` — команды Xbox и основное поведение модуля
+- `service.py` — регистрация Xbox-поля для модуля профиля
 - `xbox.secrets.example.json` — пример файла секретов
 - `requirements.txt` — зависимости для IDE и локальной проверки
 
@@ -47,6 +53,4 @@ python manage_modules.py install github:Rarmash/R4Bot-Module-Xbox@master --enabl
 ```powershell
 python -m pip install -r requirements.txt
 ```
-
-
 

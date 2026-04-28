@@ -9,7 +9,6 @@
   "required_settings": [],
   "required_services": [
     "firebase",
-    "secrets",
-    "profile_extensions"
+    "secrets"
   ]
 }
